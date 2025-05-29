@@ -9,9 +9,8 @@ const connection = require('./db');
 
 const app = express();
 
-app.use(cors({
-  origin: 'http://localhost:4000'
-}));
+// CORS liberado para todas as origens
+app.use(cors());
 app.use(express.json());
 
 // Rota de registro
@@ -60,11 +59,31 @@ const authenticateJWT = (req, res, next) => {
 app.get('/dashboard', authenticateJWT, (req, res) => {
   res.send('Bem-vindo ao seu painel');
 });
- 
+
+// Rota para alteração de senha (sem autenticação)
+app.put('/change-password', async (req, res) => {
+  const { email, newPassword } = req.body;
+  if (!email || !newPassword) {
+    return res.status(400).send('Informe email e nova senha');
+  }
+
+  try {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const query = 'UPDATE users SET password = ? WHERE email = ?';
+
+    connection.query(query, [hashedPassword, email], (err, result) => {
+      if (err) return res.status(500).send('Erro ao atualizar senha');
+      if (result.affectedRows === 0) return res.status(404).send('Email não encontrado');
+      res.send('Senha atualizada com sucesso');
+    });
+  } catch {
+    res.status(500).send('Erro no servidor');
+  }
+});
+
 app.get('/', (req, res) => {
   res.send('API doadev rodando!');
 });
-
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
