@@ -1,72 +1,151 @@
-import { FeatureCard } from "@/components/FeatureCard";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, HandCoins, Heart, Shield, Zap } from "lucide-react";
-
+"use client";
+import React, { useState } from "react";
 
 export default function Home() {
+  const [registerName, setRegisterName] = useState("");
+  const [registerEmail, setRegisterEmail] = useState("");
+  const [registerPassword, setRegisterPassword] = useState("");
+
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+
+  const [dashboardContent, setDashboardContent] = useState("");
+
+  // Registro
+  async function handleRegister(e: React.FormEvent) {
+    e.preventDefault();
+    const response = await fetch("http://localhost:4000/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: registerName,
+        email: registerEmail,
+        password: registerPassword,
+      }),
+    });
+    const text = await response.text();
+    alert(text);
+  }
+
+  // Login
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault();
+    const response = await fetch("http://localhost:4000/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: loginEmail,
+        password: loginPassword,
+      }),
+    });
+
+    const data = await response.json();
+    if (data.token) {
+      localStorage.setItem("token", data.token);
+      alert("Login bem-sucedido!");
+    } else {
+      alert(data.message || "Erro no login.");
+    }
+  }
+
+  // Acessar painel
+  async function accessDashboard() {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Você precisa estar logado.");
+      return;
+    }
+
+    const response = await fetch("http://localhost:4000/dashboard", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.ok) {
+      const content = await response.text();
+      setDashboardContent(content);
+    } else {
+      setDashboardContent("Acesso negado. Token inválido ou expirado.");
+    }
+  }
+
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-white to-gray-50">
-      <header className="container mx-auto py-6 px-4">
-        <div className="flex items-center">
-          <div className="flex items-center text-amber-500 font-bold text-xl">
-            <HandCoins className="h-6 w-6 mr-2" />
-            <span>ApoiaDev</span>
-          </div>
-        </div>
-      </header>
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-white to-gray-50 p-6 max-w-xl mx-auto">
+      <h1 className="text-3xl font-bold mb-6">doadev - Sistema de Autenticação</h1>
 
-      <main className="flex-1 flex items-center justify-center">
-        <div className="container mx-auto px-4 py-12 md:py-24">
-          <div className="max-w-3xl mx-auto">
-            <div className="text-center space-y-6">
-              <div className="inline-block bg-amber-100 text-amber-800 px-4 py-1.5 rounded-full text-sm font-medium mb-2">
-                Plataforma para criadores de conteúdo
-              </div>
+      {/* Registro */}
+      <section className="mb-8">
+        <h2 className="text-xl font-semibold mb-2">Registrar</h2>
+        <form onSubmit={handleRegister} className="flex flex-col">
+          <input
+            type="text"
+            placeholder="Nome"
+            value={registerName}
+            onChange={(e) => setRegisterName(e.target.value)}
+            required
+            className="mb-2 p-2 border rounded"
+          />
+          <input
+            type="email"
+            placeholder="Email"
+            value={registerEmail}
+            onChange={(e) => setRegisterEmail(e.target.value)}
+            required
+            className="mb-2 p-2 border rounded"
+          />
+          <input
+            type="password"
+            placeholder="Senha"
+            value={registerPassword}
+            onChange={(e) => setRegisterPassword(e.target.value)}
+            required
+            className="mb-2 p-2 border rounded"
+          />
+          <button type="submit" className="bg-amber-500 text-white p-2 rounded hover:bg-amber-600">
+            Registrar
+          </button>
+        </form>
+      </section>
 
-              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl bg-clip-text text-transparent bg-gradient-to-r from-amber-600 to-amber-400">
-                Monetize seu público de forma descomplicada
-              </h1>
+      {/* Login */}
+      <section className="mb-8">
+        <h2 className="text-xl font-semibold mb-2">Login</h2>
+        <form onSubmit={handleLogin} className="flex flex-col">
+          <input
+            type="email"
+            placeholder="Email"
+            value={loginEmail}
+            onChange={(e) => setLoginEmail(e.target.value)}
+            required
+            className="mb-2 p-2 border rounded"
+          />
+          <input
+            type="password"
+            placeholder="Senha"
+            value={loginPassword}
+            onChange={(e) => setLoginPassword(e.target.value)}
+            required
+            className="mb-2 p-2 border rounded"
+          />
+          <button type="submit" className="bg-amber-500 text-white p-2 rounded hover:bg-amber-600">
+            Entrar
+          </button>
+        </form>
+      </section>
 
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Receba doações diretamente dos seus seguidores através de uma página personalizada e elegante, sem
-                complicações.
-              </p>
-
-              <div className="pt-4">
-                <form>
-                  <Button
-                    type="submit"
-                    size="lg"
-                    className="bg-amber-500 hover:bg-amber-600 text-white font-medium px-8 h-12"
-                  >
-                    Começar agora
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </form>
-              </div>
-            </div>
-
-          </div>
-
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <FeatureCard
-              icon={<Zap className="h-8 w-8 text-amber-600" />}
-              title="Rápido e simples"
-              description="Configure sua página em minutos e comece a receber doações imediatamente."
-            />
-            <FeatureCard
-              icon={<Heart className="h-8 w-8 text-amber-600" />}
-              title="Conexão direta"
-              description="Crie uma conexão mais próxima com seus apoiadores através de mensagens personalizadas."
-            />
-            <FeatureCard
-              icon={<Shield className="h-8 w-8 text-amber-600" />}
-              title="Pagamentos seguros"
-              description="Transações protegidas e transferências automáticas para sua conta bancária."
-            />
-          </div>
-        </div>
-      </main>
+      {/* Painel */}
+      <section>
+        <h2 className="text-xl font-semibold mb-2">Painel</h2>
+        <button
+          onClick={accessDashboard}
+          className="bg-amber-500 text-white p-2 rounded hover:bg-amber-600 mb-4"
+        >
+          Acessar Painel
+        </button>
+        <div className="border p-4 min-h-[80px]">{dashboardContent}</div>
+      </section>
     </div>
   );
 }
