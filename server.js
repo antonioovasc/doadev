@@ -43,21 +43,69 @@ app.post('/login', (req, res) => {
   });
 });
 
-// Middleware de autenticação
-const authenticateJWT = (req, res, next) => {
-  const token = req.headers['authorization']?.split(' ')[1];
-  if (!token) return res.status(403).send('Token não fornecido');
+// --- ROTAS DE METAS (goals) ---
+// Aqui sem autenticação, usando user_id fixo = 1
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) return res.status(403).send('Token inválido');
-    req.user = decoded;
-    next();
+// Listar metas
+app.get('/goals', (req, res) => {
+  const userId = 1; // usuário fixo por enquanto
+  const query = 'SELECT * FROM goals WHERE user_id = ? ORDER BY created_at DESC';
+  connection.query(query, [userId], (err, results) => {
+    if (err) return res.status(500).send('Erro ao buscar metas');
+    res.json(results);
   });
-};
+});
 
-// Rota protegida
-app.get('/dashboard', authenticateJWT, (req, res) => {
-  res.send('Bem-vindo ao seu painel');
+// Criar nova meta
+app.post('/goals', (req, res) => {
+  const userId = 1; // usuário fixo
+  const { title, description } = req.body;
+
+  if (!title) return res.status(400).send('Título é obrigatório');
+
+  const query = 'INSERT INTO goals (title, description, user_id) VALUES (?, ?, ?)';
+  connection.query(query, [title, description, userId], (err, result) => {
+    if (err) return res.status(500).send('Erro ao criar meta');
+
+    const newGoal = {
+      id: result.insertId,
+      title,
+      description,
+      completed: false,
+    };
+    res.status(201).json(newGoal);
+  });
+});
+
+// Atualizar meta (exemplo: marcar como completa/incompleta)
+app.put('/goals/:id', (req, res) => {
+  const userId = 1; // usuário fixo
+  const goalId = req.params.id;
+  const { title, description, completed } = req.body;
+
+  const query = `
+    UPDATE goals
+    SET title = ?, description = ?, completed = ?
+    WHERE id = ? AND user_id = ?
+  `;
+  connection.query(query, [title, description, completed, goalId, userId], (err, result) => {
+    if (err) return res.status(500).send('Erro ao atualizar meta');
+    if (result.affectedRows === 0) return res.status(404).send('Meta não encontrada');
+    res.send('Meta atualizada com sucesso');
+  });
+});
+
+// Deletar meta
+app.delete('/goals/:id', (req, res) => {
+  const userId = 1; // usuário fixo
+  const goalId = req.params.id;
+
+  const query = 'DELETE FROM goals WHERE id = ? AND user_id = ?';
+  connection.query(query, [goalId, userId], (err, result) => {
+    if (err) return res.status(500).send('Erro ao deletar meta');
+    if (result.affectedRows === 0) return res.status(404).send('Meta não encontrada');
+    res.send('Meta deletada com sucesso');
+  });
 });
 
 // Rota para alteração de senha (sem autenticação)
