@@ -99,155 +99,173 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-white to-gray-50 p-6 max-w-xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-center">doadev</h1>
+    <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-b from-white to-gray-100 px-6 py-10">
+      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
+        <h1 className="text-4xl font-extrabold text-amber-600 mb-8 text-center tracking-wide">
+          doadev
+        </h1>
 
-      {message && (
-        <div className="mb-4 p-3 bg-red-100 text-red-800 border border-red-300 rounded">
-          {message}
-        </div>
-      )}
+        {message && (
+          <div className="mb-6 px-4 py-3 bg-red-100 text-red-800 border border-red-300 rounded-md shadow-sm select-text">
+            {message}
+          </div>
+        )}
 
-      {!showRegister && !showChangePassword && (
-        <>
-          {/* Login */}
-          <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-2">Login</h2>
-            <form onSubmit={handleLogin} className="flex flex-col">
-              <input
-                type="email"
-                placeholder="Email"
-                value={loginEmail}
-                onChange={(e) => setLoginEmail(e.target.value)}
-                required
-                className="mb-2 p-2 border rounded"
-              />
-              <input
-                type="password"
-                placeholder="Senha"
-                value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
-                required
-                className="mb-2 p-2 border rounded"
-              />
+        {!showRegister && !showChangePassword && (
+          <>
+            {/* Login */}
+            <section className="mb-8">
+              <h2 className="text-2xl font-semibold mb-4 text-gray-700 border-b pb-2">
+                Login
+              </h2>
+              <form onSubmit={handleLogin} className="flex flex-col space-y-4">
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  required
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
+                />
+                <input
+                  type="password"
+                  placeholder="Senha"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  required
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
+                />
+                <button
+                  type="submit"
+                  className="bg-amber-500 text-white font-semibold py-3 rounded-lg hover:bg-amber-600 transition"
+                >
+                  Entrar
+                </button>
+              </form>
+            </section>
+
+            <div className="flex flex-col space-y-2 text-center">
               <button
-                type="submit"
-                className="bg-amber-500 text-white p-2 rounded hover:bg-amber-600"
+                onClick={() => {
+                  setShowRegister(true);
+                  setMessage("");
+                }}
+                className="text-sm text-amber-600 font-medium hover:underline"
               >
-                Entrar
+                Não tem uma conta? Registrar-se
               </button>
-            </form>
-          </section>
 
-          <button
-            onClick={() => {
-              setShowRegister(true);
-              setMessage("");
-            }}
-            className="text-sm text-blue-600 hover:underline mb-2"
-          >
-            Não tem uma conta? Registrar-se
-          </button>
-
-          <button
-            onClick={() => {
-              setShowChangePassword(true);
-              setMessage("");
-            }}
-            className="text-sm text-blue-600 hover:underline"
-          >
-            Alterar senha
-          </button>
-        </>
-      )}
-
-      {/* Registro */}
-      {showRegister && (
-        <>
-          <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-2">Registrar</h2>
-            <form onSubmit={handleRegister} className="flex flex-col">
-              <input
-                type="text"
-                placeholder="Nome"
-                value={registerName}
-                onChange={(e) => setRegisterName(e.target.value)}
-                required
-                className="mb-2 p-2 border rounded"
-              />
-              <input
-                type="email"
-                placeholder="Email"
-                value={registerEmail}
-                onChange={(e) => setRegisterEmail(e.target.value)}
-                required
-                className="mb-2 p-2 border rounded"
-              />
-              <input
-                type="password"
-                placeholder="Senha"
-                value={registerPassword}
-                onChange={(e) => setRegisterPassword(e.target.value)}
-                required
-                className="mb-2 p-2 border rounded"
-              />
               <button
-                type="submit"
-                className="bg-amber-500 text-white p-2 rounded hover:bg-amber-600"
+                onClick={() => {
+                  setShowChangePassword(true);
+                  setMessage("");
+                }}
+                className="text-sm text-amber-600 font-medium hover:underline"
               >
+                Alterar senha
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* Registro */}
+        {showRegister && (
+          <>
+            <section className="mb-8">
+              <h2 className="text-2xl font-semibold mb-4 text-gray-700 border-b pb-2">
                 Registrar
-              </button>
-            </form>
-          </section>
-
-          <button
-            onClick={() => setShowRegister(false)}
-            className="text-sm text-blue-600 hover:underline"
-          >
-            Já tem uma conta? Fazer login
-          </button>
-        </>
-      )}
-
-      {/* Alterar senha */}
-      {showChangePassword && (
-        <>
-          <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-2">Alterar Senha</h2>
-            <form onSubmit={handleChangePassword} className="flex flex-col">
-              <input
-                type="email"
-                placeholder="Email"
-                value={changeEmail}
-                onChange={(e) => setChangeEmail(e.target.value)}
-                required
-                className="mb-2 p-2 border rounded"
-              />
-              <input
-                type="password"
-                placeholder="Nova senha"
-                value={changeNewPassword}
-                onChange={(e) => setChangeNewPassword(e.target.value)}
-                required
-                className="mb-2 p-2 border rounded"
-              />
-              <button
-                type="submit"
-                className="bg-amber-500 text-white p-2 rounded hover:bg-amber-600"
+              </h2>
+              <form
+                onSubmit={handleRegister}
+                className="flex flex-col space-y-4"
               >
-                Atualizar Senha
-              </button>
-            </form>
-          </section>
+                <input
+                  type="text"
+                  placeholder="Nome"
+                  value={registerName}
+                  onChange={(e) => setRegisterName(e.target.value)}
+                  required
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
+                />
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={registerEmail}
+                  onChange={(e) => setRegisterEmail(e.target.value)}
+                  required
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
+                />
+                <input
+                  type="password"
+                  placeholder="Senha"
+                  value={registerPassword}
+                  onChange={(e) => setRegisterPassword(e.target.value)}
+                  required
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
+                />
+                <button
+                  type="submit"
+                  className="bg-amber-500 text-white font-semibold py-3 rounded-lg hover:bg-amber-600 transition"
+                >
+                  Registrar
+                </button>
+              </form>
+            </section>
 
-          <button
-            onClick={() => setShowChangePassword(false)}
-            className="text-sm text-blue-600 hover:underline"
-          >
-            Voltar
-          </button>
-        </>
-      )}
+            <button
+              onClick={() => setShowRegister(false)}
+              className="text-sm text-amber-600 font-medium hover:underline block mx-auto"
+            >
+              Já tem uma conta? Fazer login
+            </button>
+          </>
+        )}
+
+        {/* Alterar senha */}
+        {showChangePassword && (
+          <>
+            <section className="mb-8">
+              <h2 className="text-2xl font-semibold mb-4 text-gray-700 border-b pb-2">
+                Alterar Senha
+              </h2>
+              <form
+                onSubmit={handleChangePassword}
+                className="flex flex-col space-y-4"
+              >
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={changeEmail}
+                  onChange={(e) => setChangeEmail(e.target.value)}
+                  required
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
+                />
+                <input
+                  type="password"
+                  placeholder="Nova senha"
+                  value={changeNewPassword}
+                  onChange={(e) => setChangeNewPassword(e.target.value)}
+                  required
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
+                />
+                <button
+                  type="submit"
+                  className="bg-amber-500 text-white font-semibold py-3 rounded-lg hover:bg-amber-600 transition"
+                >
+                  Atualizar Senha
+                </button>
+              </form>
+            </section>
+
+            <button
+              onClick={() => setShowChangePassword(false)}
+              className="text-sm text-amber-600 font-medium hover:underline block mx-auto"
+            >
+              Voltar
+            </button>
+          </>
+        )}
+      </div>
     </div>
   );
 }

@@ -77,18 +77,43 @@ app.post('/goals', (req, res) => {
   });
 });
 
-// Atualizar meta (exemplo: marcar como completa/incompleta)
+// Atualizar meta (título, descrição e/ou completed)
 app.put('/goals/:id', (req, res) => {
-  const userId = 1; // usuário fixo
+  const userId = 1;
   const goalId = req.params.id;
   const { title, description, completed } = req.body;
 
+  const fields = [];
+  const values = [];
+
+  if (title !== undefined) {
+    fields.push("title = ?");
+    values.push(title);
+  }
+
+  if (description !== undefined) {
+    fields.push("description = ?");
+    values.push(description);
+  }
+
+  if (completed !== undefined) {
+    fields.push("completed = ?");
+    values.push(completed);
+  }
+
+  if (fields.length === 0) {
+    return res.status(400).send("Nenhum campo para atualizar");
+  }
+
   const query = `
     UPDATE goals
-    SET title = ?, description = ?, completed = ?
+    SET ${fields.join(', ')}
     WHERE id = ? AND user_id = ?
   `;
-  connection.query(query, [title, description, completed, goalId, userId], (err, result) => {
+
+  values.push(goalId, userId);
+
+  connection.query(query, values, (err, result) => {
     if (err) return res.status(500).send('Erro ao atualizar meta');
     if (result.affectedRows === 0) return res.status(404).send('Meta não encontrada');
     res.send('Meta atualizada com sucesso');
