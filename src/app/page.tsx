@@ -99,9 +99,9 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-b from-white to-gray-100 px-6 py-10">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
-        <h1 className="text-4xl font-extrabold text-amber-600 mb-8 text-center tracking-wide">
+    <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 px-6 py-10">
+      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-8">
+        <h1 className="text-4xl font-extrabold mb-8 text-center bg-gradient-to-r from-purple-600 via-pink-600 to-red-500 bg-clip-text text-transparent tracking-wide">
           doadev
         </h1>
 
@@ -115,7 +115,7 @@ export default function Home() {
           <>
             {/* Login */}
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4 text-gray-700 border-b pb-2">
+              <h2 className="text-2xl font-semibold mb-4 text-purple-700 border-b border-purple-300 pb-2">
                 Login
               </h2>
               <form onSubmit={handleLogin} className="flex flex-col space-y-4">
@@ -125,7 +125,7 @@ export default function Home() {
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
                   required
-                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
+                  className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-300 transition"
                 />
                 <input
                   type="password"
@@ -133,11 +133,11 @@ export default function Home() {
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
                   required
-                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
+                  className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-300 transition"
                 />
                 <button
                   type="submit"
-                  className="bg-amber-500 text-white font-semibold py-3 rounded-lg hover:bg-amber-600 transition"
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-pink-600 hover:to-purple-600 text-white font-semibold py-3 rounded-xl shadow-lg transition"
                 >
                   Entrar
                 </button>
@@ -150,7 +150,7 @@ export default function Home() {
                   setShowRegister(true);
                   setMessage("");
                 }}
-                className="text-sm text-amber-600 font-medium hover:underline"
+                className="text-sm text-purple-600 font-medium hover:underline"
               >
                 Não tem uma conta? Registrar-se
               </button>
@@ -160,7 +160,7 @@ export default function Home() {
                   setShowChangePassword(true);
                   setMessage("");
                 }}
-                className="text-sm text-amber-600 font-medium hover:underline"
+                className="text-sm text-purple-600 font-medium hover:underline"
               >
                 Alterar senha
               </button>
@@ -172,7 +172,7 @@ export default function Home() {
         {showRegister && (
           <>
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4 text-gray-700 border-b pb-2">
+              <h2 className="text-2xl font-semibold mb-4 text-purple-700 border-b border-purple-300 pb-2">
                 Registrar
               </h2>
               <form
@@ -185,7 +185,7 @@ export default function Home() {
                   value={registerName}
                   onChange={(e) => setRegisterName(e.target.value)}
                   required
-                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
+                  className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-300 transition"
                 />
                 <input
                   type="email"
@@ -193,7 +193,7 @@ export default function Home() {
                   value={registerEmail}
                   onChange={(e) => setRegisterEmail(e.target.value)}
                   required
-                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
+                  className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-300 transition"
                 />
                 <input
                   type="password"
@@ -201,11 +201,11 @@ export default function Home() {
                   value={registerPassword}
                   onChange={(e) => setRegisterPassword(e.target.value)}
                   required
-                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
+                  className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-300 transition"
                 />
                 <button
                   type="submit"
-                  className="bg-amber-500 text-white font-semibold py-3 rounded-lg hover:bg-amber-600 transition"
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-pink-600 hover:to-purple-600 text-white font-semibold py-3 rounded-xl shadow-lg transition"
                 >
                   Registrar
                 </button>
@@ -214,7 +214,7 @@ export default function Home() {
 
             <button
               onClick={() => setShowRegister(false)}
-              className="text-sm text-amber-600 font-medium hover:underline block mx-auto"
+              className="text-sm text-purple-600 font-medium hover:underline block mx-auto"
             >
               Já tem uma conta? Fazer login
             </button>
@@ -225,7 +225,7 @@ export default function Home() {
         {showChangePassword && (
           <>
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4 text-gray-700 border-b pb-2">
+              <h2 className="text-2xl font-semibold mb-4 text-purple-700 border-b border-purple-300 pb-2">
                 Alterar Senha
               </h2>
               <form
@@ -238,7 +238,7 @@ export default function Home() {
                   value={changeEmail}
                   onChange={(e) => setChangeEmail(e.target.value)}
                   required
-                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
+                  className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-300 transition"
                 />
                 <input
                   type="password"
@@ -246,11 +246,11 @@ export default function Home() {
                   value={changeNewPassword}
                   onChange={(e) => setChangeNewPassword(e.target.value)}
                   required
-                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
+                  className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-300 transition"
                 />
                 <button
                   type="submit"
-                  className="bg-amber-500 text-white font-semibold py-3 rounded-lg hover:bg-amber-600 transition"
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-pink-600 hover:to-purple-600 text-white font-semibold py-3 rounded-xl shadow-lg transition"
                 >
                   Atualizar Senha
                 </button>
@@ -259,7 +259,7 @@ export default function Home() {
 
             <button
               onClick={() => setShowChangePassword(false)}
-              className="text-sm text-amber-600 font-medium hover:underline block mx-auto"
+              className="text-sm text-purple-600 font-medium hover:underline block mx-auto"
             >
               Voltar
             </button>

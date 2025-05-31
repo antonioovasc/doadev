@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
 
 type Goal = {
   id: number;
@@ -52,6 +54,8 @@ export default function DashboardPage() {
     setEditTitle(goal.title);
     setEditDescription(goal.description);
   };
+
+  const router = useRouter();
 
   const cancelEdit = () => {
     setEditingGoalId(null);
@@ -128,135 +132,153 @@ export default function DashboardPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-8 flex justify-center">
-      <section className="w-full max-w-4xl bg-white rounded-3xl shadow-xl p-8">
-        <h1 className="text-4xl font-extrabold mb-8 text-center text-gradient bg-gradient-to-r from-purple-600 via-pink-600 to-red-500 bg-clip-text text-transparent">
-          Minhas Metas
-        </h1>
+    <>
+      {/* NAVBAR */}
+      <nav className="w-full bg-white shadow-md px-8 py-4 flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-purple-600">  Bem-vindo ao Seu Painel de Metas</h2>
+      <button
+  onClick={() => {
+    localStorage.removeItem("token"); // Limpa o token do localStorage
+    router.push("/"); // Redireciona para a tela de login
+  }}
+  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition font-semibold shadow-md"
+>
+  Sair
+</button>
 
-        {/* Formulário de adicionar meta */}
-        <div className="mb-10 space-y-4">
-          <input
-            className="w-full rounded-xl border border-gray-300 px-5 py-3 focus:outline-none focus:ring-4 focus:ring-purple-300 transition"
-            placeholder="Título da Meta"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          <textarea
-            className="w-full rounded-xl border border-gray-300 px-5 py-3 resize-none focus:outline-none focus:ring-4 focus:ring-purple-300 transition"
-            placeholder="Descrição"
-            rows={4}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-          <button
-            onClick={handleAdd}
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-pink-600 hover:to-purple-600 text-white font-semibold py-3 rounded-xl shadow-lg transition"
-          >
-            Adicionar Meta
-          </button>
-        </div>
+      </nav>
 
-        {/* Lista de metas */}
-        <ul className="space-y-6">
-          {goals.map((goal) => (
-            <li
-              key={goal.id}
-              className={`p-6 rounded-2xl shadow-lg flex flex-col md:flex-row md:justify-between md:items-center transition 
-                ${
-                  goal.completed
-                    ? "bg-gradient-to-r from-green-200 via-green-100 to-green-200"
-                    : "bg-white hover:shadow-2xl"
-                }`}
+      {/* CONTEÚDO PRINCIPAL */}
+      <main className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-8 flex justify-center">
+        <section className="w-full max-w-4xl bg-white rounded-3xl shadow-xl p-8">
+          <h1 className="text-4xl font-extrabold mb-8 text-center text-gradient bg-gradient-to-r from-purple-600 via-pink-600 to-red-500 bg-clip-text text-transparent">
+            Minhas Metas
+          </h1>
+
+          {/* Formulário de adicionar meta */}
+          <div className="mb-10 space-y-4">
+            <input
+              className="w-full rounded-xl border border-gray-300 px-5 py-3 focus:outline-none focus:ring-4 focus:ring-purple-300 transition"
+              placeholder="Título da Meta"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+            <textarea
+              className="w-full rounded-xl border border-gray-300 px-5 py-3 resize-none focus:outline-none focus:ring-4 focus:ring-purple-300 transition"
+              placeholder="Descrição"
+              rows={4}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+            <button
+              onClick={handleAdd}
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-pink-600 hover:to-purple-600 text-white font-semibold py-3 rounded-xl shadow-lg transition"
             >
-              {editingGoalId === goal.id ? (
-                <div className="flex flex-col w-full space-y-3">
-                  <input
-                    className="rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-4 focus:ring-purple-300 transition"
-                    value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
-                    autoFocus
-                  />
-                  <textarea
-                    className="rounded-lg border border-gray-300 px-4 py-2 resize-none focus:outline-none focus:ring-4 focus:ring-purple-300 transition"
-                    rows={3}
-                    value={editDescription}
-                    onChange={(e) => setEditDescription(e.target.value)}
-                  />
-                  <div className="flex justify-end space-x-4 mt-2">
-                    <button
-                      onClick={() => saveEdit(goal.id)}
-                      className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded-lg shadow-md transition"
-                    >
-                      Salvar
-                    </button>
-                    <button
-                      onClick={cancelEdit}
-                      className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold px-6 py-2 rounded-lg shadow-md transition"
-                    >
-                      Cancelar
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div className="flex-1 mb-4 md:mb-0">
-                    <h2
-                      className={`text-2xl font-semibold mb-2 ${
-                        goal.completed
-                          ? "line-through text-gray-500 italic"
-                          : "text-gray-800"
-                      }`}
-                    >
-                      {goal.title}
-                    </h2>
-                    <p
-                      className={`text-gray-600 ${
-                        goal.completed ? "line-through italic" : ""
-                      }`}
-                    >
-                      {goal.description || "Sem descrição"}
-                    </p>
-                  </div>
+              Adicionar Meta
+            </button>
+          </div>
 
-                  <div className="flex flex-wrap gap-3 md:flex-col md:gap-2 items-center">
-                    <button
-                      onClick={() => toggleCompleted(goal)}
-                      className={`px-5 py-2 rounded-full font-semibold text-white shadow-md transition
-                      ${
-                        goal.completed
-                          ? "bg-yellow-500 hover:bg-yellow-600"
-                          : "bg-green-600 hover:bg-green-700"
-                      }`}
-                      title={
-                        goal.completed
-                          ? "Desmarcar como concluída"
-                          : "Marcar como concluída"
-                      }
-                    >
-                      {goal.completed ? "Desmarcar" : "Concluir"}
-                    </button>
-
-                    <button
-                      onClick={() => startEdit(goal)}
-                      className="px-5 py-2 rounded-full font-semibold text-purple-600 border border-purple-600 hover:bg-purple-600 hover:text-white transition shadow-md"
-                    >
-                      Editar
-                    </button>
-
-                    <button
-                      onClick={() => removeGoal(goal.id)}
-                      className="px-5 py-2 rounded-full font-semibold text-red-600 border border-red-600 hover:bg-red-600 hover:text-white transition shadow-md"
-                    >
-                      Remover
-                    </button>
+          {/* Lista de metas */}
+          <ul className="space-y-6">
+            {goals.map((goal) => (
+              <li
+                key={goal.id}
+                className={`p-6 rounded-2xl shadow-lg flex flex-col md:flex-row md:justify-between md:items-center transition 
+                  ${
+                    goal.completed
+                      ? "bg-gradient-to-r from-green-200 via-green-100 to-green-200"
+                      : "bg-white hover:shadow-2xl"
+                  }`}
+              >
+                {editingGoalId === goal.id ? (
+                  <div className="flex flex-col w-full space-y-3">
+                    <input
+                      className="rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-4 focus:ring-purple-300 transition"
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      autoFocus
+                    />
+                    <textarea
+                      className="rounded-lg border border-gray-300 px-4 py-2 resize-none focus:outline-none focus:ring-4 focus:ring-purple-300 transition"
+                      rows={3}
+                      value={editDescription}
+                      onChange={(e) => setEditDescription(e.target.value)}
+                    />
+                    <div className="flex justify-end space-x-4 mt-2">
+                      <button
+                        onClick={() => saveEdit(goal.id)}
+                        className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded-lg shadow-md transition"
+                      >
+                        Salvar
+                      </button>
+                      <button
+                        onClick={cancelEdit}
+                        className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold px-6 py-2 rounded-lg shadow-md transition"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
                   </div>
-                </>
-              )}
-            </li>
-          ))}
-        </ul>
-      </section>
-    </main>
+                ) : (
+                  <>
+                    <div className="flex-1 mb-4 md:mb-0">
+                      <h2
+                        className={`text-2xl font-semibold mb-2 ${
+                          goal.completed
+                            ? "line-through text-gray-500 italic"
+                            : "text-gray-800"
+                        }`}
+                      >
+                        {goal.title}
+                      </h2>
+                      <p
+                        className={`text-gray-600 ${
+                          goal.completed ? "line-through italic" : ""
+                        }`}
+                      >
+                        {goal.description || "Sem descrição"}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-3 md:flex-col md:gap-2 items-center">
+                      <button
+                        onClick={() => toggleCompleted(goal)}
+                        className={`px-5 py-2 rounded-full font-semibold text-white shadow-md transition
+                        ${
+                          goal.completed
+                            ? "bg-yellow-500 hover:bg-yellow-600"
+                            : "bg-green-600 hover:bg-green-700"
+                        }`}
+                        title={
+                          goal.completed
+                            ? "Desmarcar como concluída"
+                            : "Marcar como concluída"
+                        }
+                      >
+                        {goal.completed ? "Desmarcar" : "Concluir"}
+                      </button>
+
+                      <button
+                        onClick={() => startEdit(goal)}
+                        className="px-5 py-2 rounded-full font-semibold text-purple-600 border border-purple-600 hover:bg-purple-600 hover:text-white transition shadow-md"
+                      >
+                        Editar
+                      </button>
+
+                      <button
+                        onClick={() => removeGoal(goal.id)}
+                        className="px-5 py-2 rounded-full font-semibold text-red-600 border border-red-600 hover:bg-red-600 hover:text-white transition shadow-md"
+                      >
+                        Remover
+                      </button>
+                    </div>
+                  </>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      </main>
+    </>
   );
 }
