@@ -3,10 +3,9 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function Home() {
+export default function LoginPage() {
   const router = useRouter();
 
-  // Estados de controle
   const [showRegister, setShowRegister] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
 
@@ -17,11 +16,11 @@ export default function Home() {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
 
-  // Para alteração de senha
   const [changeEmail, setChangeEmail] = useState("");
   const [changeNewPassword, setChangeNewPassword] = useState("");
 
   const [message, setMessage] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
 
   // Registro
   async function handleRegister(e: React.FormEvent) {
@@ -38,12 +37,15 @@ export default function Home() {
     });
 
     const text = await response.text();
+    setIsSuccess(response.ok);
     setMessage(text);
 
-    setRegisterName("");
-    setRegisterEmail("");
-    setRegisterPassword("");
-    setShowRegister(false);
+    if (response.ok) {
+      setRegisterName("");
+      setRegisterEmail("");
+      setRegisterPassword("");
+      setShowRegister(false);
+    }
   }
 
   // Login
@@ -66,14 +68,16 @@ export default function Home() {
         localStorage.setItem("token", data.token);
         router.push("/dashboard");
       } else {
-        setMessage(data.message || "Senha incorreta.");
+        setIsSuccess(false);
+        setMessage(data.message || "Credenciais inválidas.");
       }
     } catch {
+      setIsSuccess(false);
       setMessage("Erro ao fazer login.");
     }
   }
 
-  // Alterar senha (sem token, só email + nova senha)
+  // Alterar senha
   async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault();
 
@@ -87,35 +91,40 @@ export default function Home() {
     });
 
     const text = await response.text();
+    setIsSuccess(response.ok);
+    setMessage(response.ok ? "Senha atualizada com sucesso!" : text || "Erro ao atualizar a senha.");
 
     if (response.ok) {
-      setMessage("Senha atualizada com sucesso!");
       setChangeEmail("");
       setChangeNewPassword("");
       setShowChangePassword(false);
-    } else {
-      setMessage(text || "Erro ao atualizar a senha.");
     }
   }
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 px-6 py-10">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-8">
-        <h1 className="text-4xl font-extrabold mb-8 text-center bg-gradient-to-r from-purple-600 via-pink-600 to-red-500 bg-clip-text text-transparent tracking-wide">
-          doadev
+    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100 px-6 py-10">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+        <h1 className="text-3xl font-extrabold mb-8 text-center text-[#1E3A5F] tracking-wide">
+          Doa<span className="text-[#16324B]">Dev</span>
         </h1>
 
         {message && (
-          <div className="mb-6 px-4 py-3 bg-red-100 text-red-800 border border-red-300 rounded-md shadow-sm select-text">
+          <div
+            className={`mb-6 px-4 py-3 rounded-md text-sm shadow-sm select-text border ${
+              isSuccess
+                ? "bg-green-100 text-green-700 border-green-300"
+                : "bg-red-100 text-red-700 border-red-300"
+            }`}
+          >
             {message}
           </div>
         )}
 
+        {/* Login */}
         {!showRegister && !showChangePassword && (
           <>
-            {/* Login */}
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4 text-purple-700 border-b border-purple-300 pb-2">
+              <h2 className="text-xl font-semibold mb-4 text-[#1E3A5F] border-b pb-2">
                 Login
               </h2>
               <form onSubmit={handleLogin} className="flex flex-col space-y-4">
@@ -125,7 +134,7 @@ export default function Home() {
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
                   required
-                  className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-300 transition"
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"
                 />
                 <input
                   type="password"
@@ -133,11 +142,11 @@ export default function Home() {
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
                   required
-                  className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-300 transition"
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"
                 />
                 <button
                   type="submit"
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-pink-600 hover:to-purple-600 text-white font-semibold py-3 rounded-xl shadow-lg transition"
+                  className="bg-[#1E3A5F] hover:bg-[#16324B] text-white font-semibold py-3 rounded-lg shadow-md transition"
                 >
                   Entrar
                 </button>
@@ -150,7 +159,7 @@ export default function Home() {
                   setShowRegister(true);
                   setMessage("");
                 }}
-                className="text-sm text-purple-600 font-medium hover:underline"
+                className="text-sm text-[#1E3A5F] font-medium hover:underline"
               >
                 Não tem uma conta? Registrar-se
               </button>
@@ -160,9 +169,9 @@ export default function Home() {
                   setShowChangePassword(true);
                   setMessage("");
                 }}
-                className="text-sm text-purple-600 font-medium hover:underline"
+                className="text-sm text-[#1E3A5F] font-medium hover:underline"
               >
-                Alterar senha
+                Esqueceu a senha?
               </button>
             </div>
           </>
@@ -172,20 +181,17 @@ export default function Home() {
         {showRegister && (
           <>
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4 text-purple-700 border-b border-purple-300 pb-2">
+              <h2 className="text-xl font-semibold mb-4 text-[#1E3A5F] border-b pb-2">
                 Registrar
               </h2>
-              <form
-                onSubmit={handleRegister}
-                className="flex flex-col space-y-4"
-              >
+              <form onSubmit={handleRegister} className="flex flex-col space-y-4">
                 <input
                   type="text"
                   placeholder="Nome"
                   value={registerName}
                   onChange={(e) => setRegisterName(e.target.value)}
                   required
-                  className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-300 transition"
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"
                 />
                 <input
                   type="email"
@@ -193,7 +199,7 @@ export default function Home() {
                   value={registerEmail}
                   onChange={(e) => setRegisterEmail(e.target.value)}
                   required
-                  className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-300 transition"
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"
                 />
                 <input
                   type="password"
@@ -201,11 +207,11 @@ export default function Home() {
                   value={registerPassword}
                   onChange={(e) => setRegisterPassword(e.target.value)}
                   required
-                  className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-300 transition"
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"
                 />
                 <button
                   type="submit"
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-pink-600 hover:to-purple-600 text-white font-semibold py-3 rounded-xl shadow-lg transition"
+                  className="bg-[#1E3A5F] hover:bg-[#16324B] text-white font-semibold py-3 rounded-lg shadow-md transition"
                 >
                   Registrar
                 </button>
@@ -214,7 +220,7 @@ export default function Home() {
 
             <button
               onClick={() => setShowRegister(false)}
-              className="text-sm text-purple-600 font-medium hover:underline block mx-auto"
+              className="text-sm text-[#1E3A5F] font-medium hover:underline block mx-auto"
             >
               Já tem uma conta? Fazer login
             </button>
@@ -225,20 +231,17 @@ export default function Home() {
         {showChangePassword && (
           <>
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4 text-purple-700 border-b border-purple-300 pb-2">
+              <h2 className="text-xl font-semibold mb-4 text-[#1E3A5F] border-b pb-2">
                 Alterar Senha
               </h2>
-              <form
-                onSubmit={handleChangePassword}
-                className="flex flex-col space-y-4"
-              >
+              <form onSubmit={handleChangePassword} className="flex flex-col space-y-4">
                 <input
                   type="email"
                   placeholder="Email"
                   value={changeEmail}
                   onChange={(e) => setChangeEmail(e.target.value)}
                   required
-                  className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-300 transition"
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"
                 />
                 <input
                   type="password"
@@ -246,11 +249,11 @@ export default function Home() {
                   value={changeNewPassword}
                   onChange={(e) => setChangeNewPassword(e.target.value)}
                   required
-                  className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-300 transition"
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"
                 />
                 <button
                   type="submit"
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-pink-600 hover:to-purple-600 text-white font-semibold py-3 rounded-xl shadow-lg transition"
+                  className="bg-[#1E3A5F] hover:bg-[#16324B] text-white font-semibold py-3 rounded-lg shadow-md transition"
                 >
                   Atualizar Senha
                 </button>
@@ -259,7 +262,7 @@ export default function Home() {
 
             <button
               onClick={() => setShowChangePassword(false)}
-              className="text-sm text-purple-600 font-medium hover:underline block mx-auto"
+              className="text-sm text-[#1E3A5F] font-medium hover:underline block mx-auto"
             >
               Voltar
             </button>
