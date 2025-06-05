@@ -77,7 +77,7 @@ export default function LoginPage() {
     }
   }
 
-  // Alterar senha
+  // Recuperar senha (sem precisar de token)
   async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault();
 
@@ -92,7 +92,7 @@ export default function LoginPage() {
 
     const text = await response.text();
     setIsSuccess(response.ok);
-    setMessage(response.ok ? "Senha atualizada com sucesso!" : text || "Erro ao atualizar a senha.");
+    setMessage(response.ok ? "Senha redefinida com sucesso!" : text || "Erro ao redefinir a senha.");
 
     if (response.ok) {
       setChangeEmail("");
@@ -227,12 +227,12 @@ export default function LoginPage() {
           </>
         )}
 
-        {/* Alterar senha */}
+        {/* Recuperar senha */}
         {showChangePassword && (
           <>
             <section className="mb-8">
               <h2 className="text-xl font-semibold mb-4 text-[#1E3A5F] border-b pb-2">
-                Alterar Senha
+                Recuperar Senha
               </h2>
               <form onSubmit={handleChangePassword} className="flex flex-col space-y-4">
                 <input
@@ -255,7 +255,7 @@ export default function LoginPage() {
                   type="submit"
                   className="bg-[#1E3A5F] hover:bg-[#16324B] text-white font-semibold py-3 rounded-lg shadow-md transition"
                 >
-                  Atualizar Senha
+                  Redefinir Senha
                 </button>
               </form>
             </section>

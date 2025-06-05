@@ -1,8 +1,9 @@
-"use client";
+"use client"; // Indica que este componente será renderizado no cliente (Next.js)
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { FaEdit, FaTrash, FaCheck, FaUndo } from "react-icons/fa";
+import { useEffect, useState } from "react";// Hooks para estado e efeitos colaterais
+import { useRouter } from "next/navigation";// Hook para navegação no Next.js
+import { FaEdit, FaTrash, FaCheck, FaUndo, FaUserCircle, FaSignOutAlt  } from "react-icons/fa"; // Tipos personalizados para metas
+
 
 type Goal = {
   id: number;
@@ -22,63 +23,62 @@ type ReportData = {
 const API_BASE = "http://localhost:4000";
 
 function useAuth() {
-  const router = useRouter();
-  const [token, setToken] = useState<string | null>(null);
+  const router = useRouter();// Permite direcionara para outra rota
+  const [token, setToken] = useState<string | null>(null); // Estado local para armazenar o token de autenticação
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
+    const storedToken = localStorage.getItem("token"); // Busca o token salvo no armazenamento local
     if (!storedToken) {
-      router.push("/");
+      router.push("/"); // Se não houver token, redireciona o usuário para a página de login
     } else {
-      setToken(storedToken);
+      setToken(storedToken);  // Se houver, atualiza o estado local
     }
-  }, [router]);
+  }, [router]); // Executa o efeito quando o componente monta (ou se o router mudar)
+
 
   const logout = () => {
-    localStorage.removeItem("token");
-    router.push("/");
+    localStorage.removeItem("token");  // Remove o token do localStorage
+    router.push("/"); // Redireciona para a página inicial/login
   };
 
-  return { token, logout };
+  return { token, logout };  // Retorna o token atual e a função de logout para ser usado em componentes
 }
 
 function Report({ token }: { token: string }) {
-  const [report, setReport] = useState<ReportData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [report, setReport] = useState<ReportData | null>(null); // Armazena os dados do relatório
+  const [loading, setLoading] = useState(true); // Controla o estado de carregamento
+  const [error, setError] = useState<string | null>(null);  // Armazena uma mensagem de erro (se houver)
 
   useEffect(() => {
-    setLoading(true);
+    setLoading(true); // Indica que o carregamento está em andamento
     fetch(`${API_BASE}/report`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}` }, // Envia o token no cabeçalho da requisição
     })
       .then(async (res) => {
         if (!res.ok) {
           const text = await res.text();
-          throw new Error(text || "Erro ao carregar relatório");
+          throw new Error(text || "Erro ao carregar relatório"); // Lança erro com mensagem personalizada
         }
-        return res.json();
+        return res.json(); // Converte a resposta em JSON
       })
       .then((data) => {
-        setReport(data);
-        setError(null);
+        setReport(data); // Atualiza o estado com os dados recebidos
+        setError(null); // Limpa erros anteriores
       })
       .catch((err) => {
-        setError(err.message);
+        setError(err.message); // Captura e armazena o erro para exibição
       })
-      .finally(() => setLoading(false));
-  }, [token]);
+      .finally(() => setLoading(false)); // Finaliza o carregamento (independente do sucesso ou erro)
+  }, [token]);  // Dispara a cada mudança no token (em geral, apenas uma vez)
 
   if (loading)
     return (
-      <div className="text-gray-600 font-medium">
-        Carregando relatório...
-      </div>
-    );
+      <div className="text-gray-600 font-medium">Carregando relatório...</div>
+    );// Exibe mensagem de carregamento
   if (error)
-    return <div className="text-red-600 font-semibold">Erro: {error}</div>;
+    return <div className="text-red-600 font-semibold">Erro: {error}</div>;  // Exibe mensagem de erro
   if (!report)
-    return <div className="text-gray-500">Nenhum dado no relatório.</div>;
+    return <div className="text-gray-500">Nenhum dado no relatório.</div>; // Caso raro: sem erro, mas também sem dados
 
   return (
     <section className="bg-white rounded-xl shadow-lg p-6 w-full max-w-sm border-t-4 border-[#1E3A5F]">
@@ -104,29 +104,30 @@ function Report({ token }: { token: string }) {
 }
 
 export default function DashboardPage() {
-  const { token, logout } = useAuth();
+  const router = useRouter(); // Hook do Next.js para redirecionamento de rotas
+  const { token, logout } = useAuth(); // Hook personalizado que retorna o token e função de logout
 
-  const [goals, setGoals] = useState<Goal[]>([]);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [editingGoalId, setEditingGoalId] = useState<number | null>(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [editDescription, setEditDescription] = useState("");
-  const [filter, setFilter] = useState<"all" | "completed" | "pending">("all");
+  const [goals, setGoals] = useState<Goal[]>([]); // Lista de metas do usuário
+  const [title, setTitle] = useState(""); // Campo de título para nova meta
+  const [description, setDescription] = useState(""); // Campo de descrição para nova meta
+  const [editingGoalId, setEditingGoalId] = useState<number | null>(null); // ID da meta sendo editada
+  const [editTitle, setEditTitle] = useState(""); // Título da meta em edição
+  const [editDescription, setEditDescription] = useState(""); // Descrição da meta em edição
+  const [filter, setFilter] = useState<"all" | "completed" | "pending">("all");  // Filtro de exibição das metas
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) return; // Só carrega se o token existir
 
     fetch(`${API_BASE}/goals`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}` },  // Envia token no cabeçalho
     })
       .then((res) => {
         if (!res.ok) throw new Error("Erro ao carregar metas");
         return res.json();
       })
-      .then((data) => setGoals(data))
-      .catch(() => alert("Erro ao carregar metas"));
-  }, [token]);
+      .then((data) => setGoals(data)) // Atualiza o estado com as metas carregadas
+      .catch(() => alert("Erro ao carregar metas")); // Alerta em caso de erro
+  }, [token]);  // Executa quando o token estiver disponível
 
   const handleAdd = async () => {
     if (!title.trim()) {
@@ -140,7 +141,7 @@ export default function DashboardPage() {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ title, description }),
+      body: JSON.stringify({ title, description }), // Envia os dados da nova meta
     });
 
     if (!res.ok) {
@@ -148,12 +149,13 @@ export default function DashboardPage() {
       return;
     }
 
-    const newGoal = await res.json();
-    setGoals([newGoal, ...goals]);
-    setTitle("");
+    const newGoal = await res.json(); // Meta retornada do backend
+    setGoals([newGoal, ...goals]); // Adiciona no início da lista
+    setTitle("");  // Limpa os campos
     setDescription("");
   };
 
+  // Aqui eu posso editar
   const startEdit = (goal: Goal) => {
     setEditingGoalId(goal.id);
     setEditTitle(goal.title);
@@ -161,11 +163,12 @@ export default function DashboardPage() {
   };
 
   const cancelEdit = () => {
-    setEditingGoalId(null);
+    setEditingGoalId(null); // Cancela edição
     setEditTitle("");
     setEditDescription("");
   };
 
+  //Para salvar uma meta é obrigatório um título
   const saveEdit = async (goalId: number) => {
     if (!editTitle.trim()) {
       alert("Título é obrigatório");
@@ -198,9 +201,10 @@ export default function DashboardPage() {
       )
     );
 
-    cancelEdit();
+    cancelEdit();  // Encerra o modo de edição
   };
 
+  // Alternar status de conclusão da meta
   const toggleCompleted = async (goal: Goal) => {
     const res = await fetch(`${API_BASE}/goals/${goal.id}`, {
       method: "PUT",
@@ -227,6 +231,7 @@ export default function DashboardPage() {
     );
   };
 
+  // Remover meta
   const removeGoal = async (goalId: number) => {
     if (!confirm("Tem certeza que deseja deletar esta meta?")) return;
 
@@ -243,12 +248,13 @@ export default function DashboardPage() {
     setGoals((oldGoals) => oldGoals.filter((goal) => goal.id !== goalId));
   };
 
+  // Aplicar filtro nas metas
   const filteredGoals = goals.filter((goal) => {
     if (filter === "completed") return goal.completed;
     if (filter === "pending") return !goal.completed;
     return true;
   });
-
+ // Tela de carregamento se o token ainda não estiver disponível
   if (!token) {
     return (
       <div className="flex items-center justify-center h-screen text-gray-600 font-semibold">
@@ -260,14 +266,24 @@ export default function DashboardPage() {
   return (
     <>
       <nav className="flex justify-between items-center bg-white px-8 py-4 shadow-md">
-        <h1 className="text-3xl font-bold text-[#1E3A5F]">Painel de Metas</h1>
-        <button
-          onClick={logout}
-          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-semibold transition-shadow shadow-md"
-        >
-          Sair
-        </button>
-      </nav>
+  <h1 className="text-3xl font-bold text-[#1E3A5F]">Painel de Metas</h1>
+  <div className="flex gap-4">
+    <button
+      onClick={() => router.push("/dashboard/profile")}
+      className="flex items-center gap-2  text-[#1E3A5F] px-5 py-2.5 rounded-full font-semibold transition-all shadow-md hover:shadow-lg focus:outline-none focus:ring-2"
+    >
+      <FaUserCircle className="text-lg" />
+      Meu Perfil
+    </button>
+    <button
+      onClick={logout}
+      className="flex items-center gap-2  text-[#da1c1c] px-5 py-2.5 rounded-full font-semibold transition-all shadow-md hover:shadow-lg focus:outline-none focus:ring-2"
+    >
+      <FaSignOutAlt className="text-lg" />
+      Sair
+    </button>
+  </div>
+</nav>
 
       <main className="min-h-screen bg-gray-100 p-8 flex justify-center">
         <div className="max-w-7xl w-full flex flex-col md:flex-row gap-8">
@@ -427,7 +443,7 @@ export default function DashboardPage() {
           </section>
 
           {/* Relatório */}
-          <Report token={token} />
+          {token && <Report token={token} />}
         </div>
       </main>
     </>

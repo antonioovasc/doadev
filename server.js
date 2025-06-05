@@ -1,6 +1,8 @@
+// Importa as variáveis de ambiente do arquivo .env
 const dotenv = require("dotenv");
 dotenv.config();
 
+// Importa os pacotes necessários
 const express = require("express");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
@@ -11,13 +13,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Middleware para autenticação
+// Middleware para autenticação - SRP (Responsabilidade única)
 function authenticateToken(req, res, next) {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
 
   if (!token) return res.sendStatus(401); // Sem token
 
+  // Verifica se o token é válido
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) return res.sendStatus(403); // Token inválido
     req.user = user; // anexa o ID do usuário no request
@@ -25,7 +28,7 @@ function authenticateToken(req, res, next) {
   });
 }
 
-// Registro
+// Registro - SRP (Responsabilidade única)
 app.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -37,7 +40,7 @@ app.post("/register", async (req, res) => {
   });
 });
 
-// Login
+// Login - SRP (Responsabilidade única) - O código de login está bem isolado, mas...
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
 
@@ -55,9 +58,7 @@ app.post("/login", (req, res) => {
   });
 });
 
-// Rotas protegidas com JWT 
-
-// Listar metas
+// Rotas protegidas com JWT - SRP (Responsabilidade única)
 app.get("/goals", authenticateToken, (req, res) => {
   const userId = req.user.id;
 
@@ -68,7 +69,7 @@ app.get("/goals", authenticateToken, (req, res) => {
   });
 });
 
-// Criar nova meta
+// Criar nova meta - SRP (Responsabilidade única)
 app.post("/goals", authenticateToken, (req, res) => {
   const userId = req.user.id;
   const { title, description } = req.body;
@@ -89,7 +90,7 @@ app.post("/goals", authenticateToken, (req, res) => {
   });
 });
 
-// Atualizar meta
+// Atualizar meta - SRP (Responsabilidade única) - Refatoração sugerida: Dividir responsabilidades em funções menores
 app.put("/goals/:id", authenticateToken, (req, res) => {
   const userId = req.user.id;
   const goalId = req.params.id;
@@ -132,7 +133,35 @@ app.put("/goals/:id", authenticateToken, (req, res) => {
   });
 });
 
-// Deletar meta
+// Rota para buscar dados do perfil do usuário logado - SRP (Responsabilidade única)
+app.get("/profile", authenticateToken, (req, res) => {
+  const userId = req.user.id; // ID do usuário extraído do token JWT
+
+  const query = "SELECT name, email FROM users WHERE id = ?";
+  connection.query(query, [userId], (err, results) => {
+    if (err) return res.status(500).send("Erro ao carregar perfil");
+    if (results.length === 0) return res.status(404).send("Usuário não encontrado");
+
+    // Envia os dados do perfil
+    res.json(results[0]);
+  });
+});
+
+// Atualizar dados do perfil - SRP (Responsabilidade única)
+app.put("/profile", authenticateToken, (req, res) => {
+  const userId = req.user.id;
+  const { name, email } = req.body;
+
+  const query = "UPDATE users SET name = ?, email = ? WHERE id = ?";
+  connection.query(query, [name, email, userId], (err, result) => {
+    if (err) return res.status(500).send("Erro ao atualizar perfil");
+    if (result.affectedRows === 0) return res.status(404).send("Usuário não encontrado");
+
+    res.send("Perfil atualizado com sucesso!");
+  });
+});
+
+// Deletar meta - SRP (Responsabilidade única)
 app.delete("/goals/:id", authenticateToken, (req, res) => {
   const userId = req.user.id;
   const goalId = req.params.id;
@@ -145,7 +174,7 @@ app.delete("/goals/:id", authenticateToken, (req, res) => {
   });
 });
 
-// Alterar senha 
+// Alterar senha - SRP (Responsabilidade única)
 app.put("/change-password", async (req, res) => {
   const { email, newPassword } = req.body;
   if (!email || !newPassword) {
@@ -166,7 +195,7 @@ app.put("/change-password", async (req, res) => {
   }
 });
 
-// Rota para gerar relatório do usuário logado
+// Rota para gerar relatório do usuário logado - SRP (Responsabilidade única)
 app.get("/report", authenticateToken, (req, res) => {
   const userId = req.user.id;
 
@@ -207,6 +236,8 @@ app.get("/report", authenticateToken, (req, res) => {
     res.json(results[0]);
   });
 });
+
+// Teste básico para ver se o servidor está rodando
 
 app.get("/", (req, res) => {
   res.send("API doadev rodando!");
