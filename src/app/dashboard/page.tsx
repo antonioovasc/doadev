@@ -1,16 +1,24 @@
-"use client"; // Indica que este componente será renderizado no cliente (Next.js)
-
-import { useEffect, useState } from "react";// Hooks para estado e efeitos colaterais
-import { useRouter } from "next/navigation";// Hook para navegação no Next.js
-import { FaEdit, FaTrash, FaCheck, FaUndo, FaUserCircle, FaSignOutAlt  } from "react-icons/fa"; // Tipos personalizados para metas
-
+"use client";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  FaEdit,
+  FaTrash,
+  FaCheck,
+  FaUndo,
+  FaUserCircle,
+  FaSignOutAlt,
+} from "react-icons/fa";
 
 type Goal = {
   id: number;
   title: string;
   description: string;
   completed: boolean;
+  category_id: number | null;
 };
+
+type Category = { id: number; name: string };
 
 type ReportData = {
   name: string;
@@ -23,62 +31,44 @@ type ReportData = {
 const API_BASE = "http://localhost:4000";
 
 function useAuth() {
-  const router = useRouter();// Permite direcionara para outra rota
-  const [token, setToken] = useState<string | null>(null); // Estado local para armazenar o token de autenticação
+  const router = useRouter();
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("token"); // Busca o token salvo no armazenamento local
-    if (!storedToken) {
-      router.push("/"); // Se não houver token, redireciona o usuário para a página de login
-    } else {
-      setToken(storedToken);  // Se houver, atualiza o estado local
-    }
-  }, [router]); // Executa o efeito quando o componente monta (ou se o router mudar)
-
+    const stored = localStorage.getItem("token");
+    if (!stored) router.push("/");
+    else setToken(stored);
+  }, [router]);
 
   const logout = () => {
-    localStorage.removeItem("token");  // Remove o token do localStorage
-    router.push("/"); // Redireciona para a página inicial/login
+    localStorage.removeItem("token");
+    router.push("/");
   };
 
-  return { token, logout };  // Retorna o token atual e a função de logout para ser usado em componentes
+  return { token, logout };
 }
 
 function Report({ token }: { token: string }) {
-  const [report, setReport] = useState<ReportData | null>(null); // Armazena os dados do relatório
-  const [loading, setLoading] = useState(true); // Controla o estado de carregamento
-  const [error, setError] = useState<string | null>(null);  // Armazena uma mensagem de erro (se houver)
+  const [report, setReport] = useState<ReportData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setLoading(true); // Indica que o carregamento está em andamento
     fetch(`${API_BASE}/report`, {
-      headers: { Authorization: `Bearer ${token}` }, // Envia o token no cabeçalho da requisição
+      headers: { Authorization: `Bearer ${token}` },
     })
       .then(async (res) => {
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(text || "Erro ao carregar relatório"); // Lança erro com mensagem personalizada
-        }
-        return res.json(); // Converte a resposta em JSON
+        if (!res.ok) throw new Error(await res.text());
+        return res.json();
       })
-      .then((data) => {
-        setReport(data); // Atualiza o estado com os dados recebidos
-        setError(null); // Limpa erros anteriores
-      })
-      .catch((err) => {
-        setError(err.message); // Captura e armazena o erro para exibição
-      })
-      .finally(() => setLoading(false)); // Finaliza o carregamento (independente do sucesso ou erro)
-  }, [token]);  // Dispara a cada mudança no token (em geral, apenas uma vez)
+      .then(setReport)
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, [token]);
 
-  if (loading)
-    return (
-      <div className="text-gray-600 font-medium">Carregando relatório...</div>
-    );// Exibe mensagem de carregamento
-  if (error)
-    return <div className="text-red-600 font-semibold">Erro: {error}</div>;  // Exibe mensagem de erro
-  if (!report)
-    return <div className="text-gray-500">Nenhum dado no relatório.</div>; // Caso raro: sem erro, mas também sem dados
+  if (loading) return <div className="text-gray-600">Carregando relatório…</div>;
+  if (error) return <div className="text-red-600">Erro: {error}</div>;
+  if (!report) return <div className="text-gray-500">Relatório vazio.</div>;
 
   return (
     <section className="bg-white rounded-xl shadow-lg p-6 w-full max-w-sm border-t-4 border-[#1E3A5F]">
@@ -86,295 +76,333 @@ function Report({ token }: { token: string }) {
         Relatório de {report.name}
       </h2>
       <ul className="text-gray-700 space-y-2">
-        <li>
-          <strong>Total de metas:</strong> {report.total_goals}
-        </li>
-        <li>
-          <strong>Concluídas:</strong> {report.completed_goals}
-        </li>
-        <li>
-          <strong>Pendentes:</strong> {report.pending_goals}
-        </li>
-        <li>
-          <strong>Concluído:</strong> {report.completion_percentage}%
-        </li>
+        <li><strong>Total:</strong> {report.total_goals}</li>
+        <li><strong>Concluídas:</strong> {report.completed_goals}</li>
+        <li><strong>Pendentes:</strong> {report.pending_goals}</li>
+        <li><strong>Concluído:</strong> {report.completion_percentage}%</li>
       </ul>
     </section>
   );
 }
 
 export default function DashboardPage() {
-  const router = useRouter(); // Hook do Next.js para redirecionamento de rotas
-  const { token, logout } = useAuth(); // Hook personalizado que retorna o token e função de logout
+  const router = useRouter();
+  const { token, logout } = useAuth();
 
-  const [goals, setGoals] = useState<Goal[]>([]); // Lista de metas do usuário
-  const [title, setTitle] = useState(""); // Campo de título para nova meta
-  const [description, setDescription] = useState(""); // Campo de descrição para nova meta
-  const [editingGoalId, setEditingGoalId] = useState<number | null>(null); // ID da meta sendo editada
-  const [editTitle, setEditTitle] = useState(""); // Título da meta em edição
-  const [editDescription, setEditDescription] = useState(""); // Descrição da meta em edição
-  const [filter, setFilter] = useState<"all" | "completed" | "pending">("all");  // Filtro de exibição das metas
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+
+  const [editingGoalId, setEditingGoalId] = useState<number | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editCategoryId, setEditCategoryId] = useState<number | null>(null);
+
+  const [filter, setFilter] = useState<"all" | "completed" | "pending">("all");
 
   useEffect(() => {
-    if (!token) return; // Só carrega se o token existir
+    if (!token) return;
 
+    // goals
     fetch(`${API_BASE}/goals`, {
-      headers: { Authorization: `Bearer ${token}` },  // Envia token no cabeçalho
+      headers: { Authorization: `Bearer ${token}` },
     })
-      .then((res) => {
-        if (!res.ok) throw new Error("Erro ao carregar metas");
-        return res.json();
-      })
-      .then((data) => setGoals(data)) // Atualiza o estado com as metas carregadas
-      .catch(() => alert("Erro ao carregar metas")); // Alerta em caso de erro
-  }, [token]);  // Executa quando o token estiver disponível
+      .then((res) => res.json())
+      .then(setGoals)
+      .catch(() => alert("Erro ao carregar metas"));
+
+    // categories
+    fetch(`${API_BASE}/categories`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then(setCategories)
+      .catch(() => alert("Erro ao carregar categorias"));
+  }, [token]);
+
+  //const do filtro de categoria
+  const [categoryFilter, setCategoryFilter] = useState<number | "all">("all");
 
   const handleAdd = async () => {
-    if (!title.trim()) {
-      alert("Título é obrigatório");
-      return;
-    }
-
+    if (!title.trim()) return alert("Título é obrigatório");
     const res = await fetch(`${API_BASE}/goals`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ title, description }), // Envia os dados da nova meta
+      body: JSON.stringify({
+        title,
+        description,
+        category_id: selectedCategory,
+      }),
     });
-
-    if (!res.ok) {
-      alert("Erro ao adicionar meta");
-      return;
-    }
-
-    const newGoal = await res.json(); // Meta retornada do backend
-    setGoals([newGoal, ...goals]); // Adiciona no início da lista
-    setTitle("");  // Limpa os campos
+    if (!res.ok) return alert("Erro ao adicionar meta");
+    const newGoal = await res.json();
+    setGoals([newGoal, ...goals]);
+    setTitle("");
     setDescription("");
+    setSelectedCategory(null);
   };
 
-  // Aqui eu posso editar
-  const startEdit = (goal: Goal) => {
-    setEditingGoalId(goal.id);
-    setEditTitle(goal.title);
-    setEditDescription(goal.description);
+  const startEdit = (g: Goal) => {
+    setEditingGoalId(g.id);
+    setEditTitle(g.title);
+    setEditDescription(g.description);
+    setEditCategoryId(g.category_id);
   };
 
   const cancelEdit = () => {
-    setEditingGoalId(null); // Cancela edição
+    setEditingGoalId(null);
     setEditTitle("");
     setEditDescription("");
+    setEditCategoryId(null);
   };
 
-  //Para salvar uma meta é obrigatório um título
-  const saveEdit = async (goalId: number) => {
-    if (!editTitle.trim()) {
-      alert("Título é obrigatório");
-      return;
-    }
-
-    const res = await fetch(`${API_BASE}/goals/${goalId}`, {
+  const saveEdit = async (id: number) => {
+    if (!editTitle.trim()) return alert("Título é obrigatório");
+    const res = await fetch(`${API_BASE}/goals/${id}`, {
       method: "PUT",
       headers: {
-        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         title: editTitle,
         description: editDescription,
-        completed: goals.find((g) => g.id === goalId)?.completed || false,
+        category_id: editCategoryId,
+        completed: goals.find((g) => g.id === id)?.completed,
       }),
     });
-
-    if (!res.ok) {
-      alert("Erro ao atualizar meta");
-      return;
-    }
-
-    setGoals((oldGoals) =>
-      oldGoals.map((goal) =>
-        goal.id === goalId
-          ? { ...goal, title: editTitle, description: editDescription }
-          : goal
+    if (!res.ok) return alert("Erro ao editar");
+    setGoals((old) =>
+      old.map((g) =>
+        g.id === id
+          ? {
+            ...g,
+            title: editTitle,
+            description: editDescription,
+            category_id: editCategoryId,
+          }
+          : g
       )
     );
-
-    cancelEdit();  // Encerra o modo de edição
+    cancelEdit();
   };
 
-  // Alternar status de conclusão da meta
-  const toggleCompleted = async (goal: Goal) => {
-    const res = await fetch(`${API_BASE}/goals/${goal.id}`, {
+  const toggleCompleted = async (g: Goal) => {
+    await fetch(`${API_BASE}/goals/${g.id}`, {
       method: "PUT",
       headers: {
-        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        title: goal.title,
-        description: goal.description,
-        completed: !goal.completed,
+        title: g.title,
+        description: g.description,
+        category_id: g.category_id,
+        completed: !g.completed,
       }),
     });
-
-    if (!res.ok) {
-      alert("Erro ao atualizar status da meta");
-      return;
-    }
-
-    setGoals((oldGoals) =>
-      oldGoals.map((g) =>
-        g.id === goal.id ? { ...g, completed: !g.completed } : g
+    setGoals((old) =>
+      old.map((t) =>
+        t.id === g.id ? { ...t, completed: !t.completed } : t
       )
     );
   };
 
-  // Remover meta
-  const removeGoal = async (goalId: number) => {
-    if (!confirm("Tem certeza que deseja deletar esta meta?")) return;
-
-    const res = await fetch(`${API_BASE}/goals/${goalId}`, {
+  const removeGoal = async (id: number) => {
+    if (!confirm("Deletar meta?")) return;
+    await fetch(`${API_BASE}/goals/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
-
-    if (!res.ok) {
-      alert("Erro ao deletar meta");
-      return;
-    }
-
-    setGoals((oldGoals) => oldGoals.filter((goal) => goal.id !== goalId));
+    setGoals((old) => old.filter((g) => g.id !== id));
   };
 
-  // Aplicar filtro nas metas
-  const filteredGoals = goals.filter((goal) => {
-    if (filter === "completed") return goal.completed;
-    if (filter === "pending") return !goal.completed;
-    return true;
+
+
+  const filteredGoals = goals.filter(g => {
+    const statusMatch =
+      filter === "completed" ? g.completed :
+        filter === "pending" ? !g.completed : true;
+
+    const categoryMatch =
+      categoryFilter === "all" ? true :
+        categoryFilter === g.category_id;
+
+    return statusMatch && categoryMatch;
   });
- // Tela de carregamento se o token ainda não estiver disponível
-  if (!token) {
+
+
+  if (!token)
     return (
       <div className="flex items-center justify-center h-screen text-gray-600 font-semibold">
         Carregando...
       </div>
     );
-  }
 
   return (
     <>
       <nav className="flex justify-between items-center bg-white px-8 py-4 shadow-md">
-  <h1 className="text-3xl font-bold text-[#1E3A5F]">Painel de Metas</h1>
-  <div className="flex gap-4">
-    <button
-      onClick={() => router.push("/dashboard/profile")}
-      className="flex items-center gap-2  text-[#1E3A5F] px-5 py-2.5 rounded-full font-semibold transition-all shadow-md hover:shadow-lg focus:outline-none focus:ring-2"
-    >
-      <FaUserCircle className="text-lg" />
-      Meu Perfil
-    </button>
-    <button
-      onClick={logout}
-      className="flex items-center gap-2  text-[#da1c1c] px-5 py-2.5 rounded-full font-semibold transition-all shadow-md hover:shadow-lg focus:outline-none focus:ring-2"
-    >
-      <FaSignOutAlt className="text-lg" />
-      Sair
-    </button>
-  </div>
-</nav>
+        <h1 className="text-3xl font-bold text-[#1E3A5F]">Painel de Metas</h1>
+        <div className="flex gap-4">
+          <button
+            onClick={() => router.push("/dashboard/categories")}
+            className="flex items-center gap-2 text-[#1E3A5F] px-5 py-2.5 rounded-full font-semibold shadow-md hover:shadow-lg"
+          >
+            Categorias
+          </button>
+
+          <button
+            onClick={() => router.push("/dashboard/profile")}
+            className="flex items-center gap-2 text-[#1E3A5F] px-5 py-2.5 rounded-full font-semibold shadow-md hover:shadow-lg"
+          >
+            <FaUserCircle /> Meu Perfil
+          </button>
+          <button
+            onClick={logout}
+            className="flex items-center gap-2 text-[#da1c1c] px-5 py-2.5 rounded-full font-semibold shadow-md hover:shadow-lg"
+          >
+            <FaSignOutAlt /> Sair
+          </button>
+        </div>
+      </nav>
 
       <main className="min-h-screen bg-gray-100 p-8 flex justify-center">
         <div className="max-w-7xl w-full flex flex-col md:flex-row gap-8">
-          {/* Área das metas */}
+          {/* Metas */}
           <section className="bg-white rounded-2xl shadow-xl p-8 flex-grow">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+            <div className="flex flex-col md:flex-row md:justify-between mb-6">
               <h2 className="text-3xl font-extrabold text-[#1E3A5F] mb-4 md:mb-0">
                 Minhas Metas
               </h2>
-              <div className="flex gap-4 flex-wrap">
-                {["all", "completed", "pending"].map((key) => (
+              <div className="flex gap-4">
+                {["all", "completed", "pending"].map((f) => (
                   <button
-                    key={key}
-                    onClick={() => setFilter(key as any)}
-                    className={`px-4 py-2 rounded-full font-semibold transition ${
-                      filter === key
-                        ? key === "completed"
-                          ? "bg-green-600 text-white"
-                          : key === "pending"
+                    key={f}
+                    onClick={() => setFilter(f as any)}
+                    className={`px-4 py-2 rounded-full font-semibold ${filter === f
+                      ? f === "completed"
+                        ? "bg-green-600 text-white"
+                        : f === "pending"
                           ? "bg-yellow-500 text-white"
                           : "bg-[#1E3A5F] text-white"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                    }`}
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      }`}
                   >
-                    {key === "all"
+                    {f === "all"
                       ? "Todas"
-                      : key === "completed"
-                      ? "Concluídas"
-                      : "Pendentes"}
+                      : f === "completed"
+                        ? "Concluídas"
+                        : "Pendentes"}
                   </button>
+
+
                 ))}
               </div>
+              <select
+                className="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#1E3A5F]"
+                value={categoryFilter}
+                onChange={e =>
+                  setCategoryFilter(e.target.value === "all" ? "all" : +e.target.value)
+                }
+              >
+                <option value="all">Todas as categorias</option>
+                {categories.map(c => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+
             </div>
 
-            {/* Formulário para adicionar meta */}
+            {/* Formulário */}
             <div className="flex flex-col md:flex-row gap-4 mb-8">
               <input
-                type="text"
-                placeholder="Título da meta"
-                className="flex-grow border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"
+                className="flex-grow border rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#1E3A5F]"
+                placeholder="Título"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
               <input
-                type="text"
-                placeholder="Descrição (opcional)"
-                className="flex-grow border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"
+                className="flex-grow border rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#1E3A5F]"
+                placeholder="Descrição"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
+              <select
+                className="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#1E3A5F]"
+                value={selectedCategory ?? ""}
+                onChange={(e) =>
+                  setSelectedCategory(e.target.value ? +e.target.value : null)
+                }
+              >
+                <option value="">Sem categoria</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
               <button
                 onClick={handleAdd}
-                className="bg-[#1E3A5F] text-white px-6 py-3 rounded-lg font-semibold shadow-md hover:bg-[#16324B] transition"
+                className="bg-[#1E3A5F] text-white px-6 py-3 rounded-lg font-semibold shadow-md hover:bg-[#16324B]"
               >
                 Adicionar
               </button>
             </div>
 
-            {/* Lista de metas */}
+            {/* Lista */}
             <div className="flex flex-col gap-6">
               {filteredGoals.length === 0 && (
-                <p className="text-gray-500 text-center">Nenhuma meta encontrada.</p>
+                <p className="text-gray-500 text-center">Nenhuma meta.</p>
               )}
-              {filteredGoals.map((goal) =>
-                editingGoalId === goal.id ? (
+              {filteredGoals.map((g) =>
+                editingGoalId === g.id ? (
                   <div
-                    key={goal.id}
+                    key={g.id}
                     className="bg-white p-6 rounded-xl shadow-md border-l-4 border-[#1E3A5F] flex flex-col gap-4"
                   >
                     <input
-                      type="text"
+                      className="border rounded-md px-4 py-2 focus:ring-2 focus:ring-[#1E3A5F]"
                       value={editTitle}
                       onChange={(e) => setEditTitle(e.target.value)}
-                      className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"
                     />
                     <textarea
+                      className="border rounded-md px-4 py-2 focus:ring-2 focus:ring-[#1E3A5F]"
                       value={editDescription}
                       onChange={(e) => setEditDescription(e.target.value)}
-                      className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"
                       rows={3}
                     />
+                    <select
+                      className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-[#1E3A5F]"
+                      value={editCategoryId ?? ""}
+                      onChange={(e) =>
+                        setEditCategoryId(e.target.value ? +e.target.value : null)
+                      }
+                    >
+                      <option value="">Sem categoria</option>
+                      {categories.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
                     <div className="flex gap-4">
                       <button
-                        onClick={() => saveEdit(goal.id)}
-                        className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md shadow transition font-semibold"
+                        onClick={() => saveEdit(g.id)}
+                        className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md shadow hover:bg-green-700"
                       >
                         <FaCheck /> Salvar
                       </button>
                       <button
                         onClick={cancelEdit}
-                        className="flex items-center gap-2 bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md shadow transition font-semibold"
+                        className="flex items-center gap-2 bg-gray-300 text-gray-800 px-4 py-2 rounded-md shadow hover:bg-gray-400"
                       >
                         <FaUndo /> Cancelar
                       </button>
@@ -382,56 +410,49 @@ export default function DashboardPage() {
                   </div>
                 ) : (
                   <div
-                    key={goal.id}
-                    className={`bg-white p-6 rounded-xl shadow-md border-l-4 ${
-                      goal.completed
-                        ? "border-green-500 opacity-80"
-                        : "border-[#1E3A5F]"
-                    } flex flex-col md:flex-row md:justify-between md:items-center gap-4`}
+                    key={g.id}
+                    className={`bg-white p-6 rounded-xl shadow-md border-l-4 ${g.completed ? "border-green-500 opacity-80" : "border-[#1E3A5F]"
+                      } flex-col md:flex-row md:justify-between md:items-center gap-4 flex`}
                   >
                     <div>
                       <h3
-                        className={`text-xl font-semibold ${
-                          goal.completed ? "line-through text-green-600" : ""
-                        }`}
+                        className={`text-xl font-semibold ${g.completed ? "line-through text-green-600" : ""
+                          }`}
                       >
-                        {goal.title}
+                        {g.title}
                       </h3>
-                      <p
-                        className={`mt-1 text-gray-700 ${
-                          goal.completed ? "line-through" : ""
-                        }`}
-                      >
-                        {goal.description || "—"}
+                      <p className={`${g.completed ? "line-through" : ""} mt-1`}>
+                        {g.description || "—"}
                       </p>
+                      {g.category_id !== null && (
+                        <p className="text-sm text-gray-500 mt-1">
+                          Categoria:{" "}
+                          {
+                            categories.find((c) => c.id === g.category_id)
+                              ?.name
+                          }
+                        </p>
+                      )}
                     </div>
-                    <div className="flex gap-3 flex-wrap justify-end">
+                    <div className="flex gap-3">
                       <button
-                        onClick={() => toggleCompleted(goal)}
-                        title={
-                          goal.completed
-                            ? "Marcar como pendente"
-                            : "Marcar como concluída"
-                        }
-                        className={`p-2 rounded-md text-white shadow-md transition ${
-                          goal.completed
-                            ? "bg-yellow-500 hover:bg-yellow-600"
-                            : "bg-green-600 hover:bg-green-700"
-                        }`}
+                        onClick={() => toggleCompleted(g)}
+                        className={`p-2 rounded-md text-white shadow ${g.completed
+                          ? "bg-yellow-500 hover:bg-yellow-600"
+                          : "bg-green-600 hover:bg-green-700"
+                          }`}
                       >
-                        {goal.completed ? <FaUndo /> : <FaCheck />}
+                        {g.completed ? <FaUndo /> : <FaCheck />}
                       </button>
                       <button
-                        onClick={() => startEdit(goal)}
-                        title="Editar meta"
-                        className="p-2 rounded-md bg-[#1E3A5F] hover:bg-[#16324B] text-white shadow-md transition"
+                        onClick={() => startEdit(g)}
+                        className="p-2 rounded-md bg-[#1E3A5F] hover:bg-[#16324B] text-white"
                       >
                         <FaEdit />
                       </button>
                       <button
-                        onClick={() => removeGoal(goal.id)}
-                        title="Deletar meta"
-                        className="p-2 rounded-md bg-red-600 hover:bg-red-700 text-white shadow-md transition"
+                        onClick={() => removeGoal(g.id)}
+                        className="p-2 rounded-md bg-red-600 hover:bg-red-700 text-white"
                       >
                         <FaTrash />
                       </button>

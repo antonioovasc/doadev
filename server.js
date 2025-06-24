@@ -72,12 +72,12 @@ app.get("/goals", authenticateToken, (req, res) => {
 // Criar nova meta - SRP (Responsabilidade única)
 app.post("/goals", authenticateToken, (req, res) => {
   const userId = req.user.id;
-  const { title, description } = req.body;
+  const { title, description, category_id } = req.body;
 
   if (!title) return res.status(400).send("Título é obrigatório");
 
-  const query = "INSERT INTO goals (title, description, user_id) VALUES (?, ?, ?)";
-  connection.query(query, [title, description, userId], (err, result) => {
+  const query = "INSERT INTO goals (title, description, user_id, category_id) VALUES (?, ?, ?, ?)";
+  connection.query(query, [title, description, userId, category_id || null], (err, result) => {
     if (err) return res.status(500).send("Erro ao criar meta");
 
     const newGoal = {
@@ -85,6 +85,7 @@ app.post("/goals", authenticateToken, (req, res) => {
       title,
       description,
       completed: false,
+      category_id: category_id || null,
     };
     res.status(201).json(newGoal);
   });
@@ -237,6 +238,58 @@ app.get("/report", authenticateToken, (req, res) => {
   });
 });
 
+
+// CRUD de Categorias de Metas
+app.post("/categories", authenticateToken, (req, res) => {
+  const userId = req.user.id;
+  const { name } = req.body;
+
+  if (!name) return res.status(400).send("Nome da categoria é obrigatório");
+
+  const query = "INSERT INTO categories (user_id, name) VALUES (?, ?)";
+  connection.query(query, [userId, name], (err, result) => {
+    if (err) return res.status(500).send("Erro ao criar categoria");
+    res.status(201).json({ id: result.insertId, name });
+  });
+});
+
+app.get("/categories", authenticateToken, (req, res) => {
+  const userId = req.user.id;
+
+  const query = "SELECT * FROM categories WHERE user_id = ?";
+  connection.query(query, [userId], (err, results) => {
+    if (err) return res.status(500).send("Erro ao buscar categorias");
+    res.json(results);
+  });
+});
+
+app.put("/categories/:id", authenticateToken, (req, res) => {
+  const userId = req.user.id;
+  const categoryId = req.params.id;
+  const { name } = req.body;
+
+  const query = "UPDATE categories SET name = ? WHERE id = ? AND user_id = ?";
+  connection.query(query, [name, categoryId, userId], (err, result) => {
+    if (err) return res.status(500).send("Erro ao atualizar categoria");
+    if (result.affectedRows === 0) return res.status(404).send("Categoria não encontrada");
+    res.send("Categoria atualizada com sucesso");
+  });
+});
+
+app.delete("/categories/:id", authenticateToken, (req, res) => {
+  const userId = req.user.id;
+  const categoryId = req.params.id;
+
+  const query = "DELETE FROM categories WHERE id = ? AND user_id = ?";
+  connection.query(query, [categoryId, userId], (err, result) => {
+    if (err) return res.status(500).send("Erro ao deletar categoria");
+    if (result.affectedRows === 0) return res.status(404).send("Categoria não encontrada");
+    res.send("Categoria deletada com sucesso");
+  });
+});
+
+
+
 // Teste básico para ver se o servidor está rodando
 
 app.get("/", (req, res) => {
@@ -247,3 +300,5 @@ const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
+
+
