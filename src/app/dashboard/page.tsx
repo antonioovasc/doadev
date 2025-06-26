@@ -1,14 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  FaEdit,
-  FaTrash,
-  FaCheck,
-  FaUndo,
-  FaUserCircle,
-  FaSignOutAlt,
-} from "react-icons/fa";
+import { FaEdit, FaTrash, FaCheck, FaUndo, FaUserCircle, FaSignOutAlt } from "react-icons/fa";
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 type Goal = {
   id: number;
@@ -30,6 +24,11 @@ type ReportData = {
 
 const API_BASE = "http://localhost:4000";
 
+
+// Cores para o gráfico de pizza
+const COLORS = ['#00C49F', '#FFBB28'];
+
+
 function useAuth() {
   const router = useRouter();
   const [token, setToken] = useState<string | null>(null);
@@ -48,7 +47,7 @@ function useAuth() {
   return { token, logout };
 }
 
-function Report({ token }: { token: string }) {
+function Report({ token, goals }: { token: string, goals: Goal[] }) {
   const [report, setReport] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -70,20 +69,52 @@ function Report({ token }: { token: string }) {
   if (error) return <div className="text-red-600">Erro: {error}</div>;
   if (!report) return <div className="text-gray-500">Relatório vazio.</div>;
 
+  // Dados para o gráfico de pizza, agora calculando a partir das metas
+  const data = [
+    { name: 'Concluídas', value: goals.filter((g) => g.completed).length },
+    { name: 'Pendentes', value: goals.filter((g) => !g.completed).length },
+  ];
+
+
   return (
     <section className="bg-white rounded-xl shadow-lg p-6 w-full max-w-sm border-t-4 border-[#1E3A5F]">
       <h2 className="text-[#1E3A5F] text-2xl font-bold mb-4">
         Relatório de {report.name}
       </h2>
-      <ul className="text-gray-700 space-y-2">
-        <li><strong>Total:</strong> {report.total_goals}</li>
-        <li><strong>Concluídas:</strong> {report.completed_goals}</li>
-        <li><strong>Pendentes:</strong> {report.pending_goals}</li>
-        <li><strong>Concluído:</strong> {report.completion_percentage}%</li>
+
+      {/* Gráfico de Pizza */}
+      <ResponsiveContainer width="100%" height={250}>
+        <PieChart>
+          <Pie
+            dataKey="value"
+            isAnimationActive
+            data={data}
+            cx="50%"
+            cy="50%"
+            outerRadius={90}
+            label
+          >
+            {data.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            ))}
+          </Pie>
+          <Tooltip />
+          <Legend />
+        </PieChart>
+      </ResponsiveContainer>
+
+      <ul className="text-gray-700 space-y-2 mt-6">
+        <li><strong>Total:</strong> {goals.length}</li> {/* Mostra o total de metas */}
+        <li><strong>Concluídas:</strong> {data[0].value}</li>
+        <li><strong>Pendentes:</strong> {data[1].value}</li>
+        <li><strong>Concluído:</strong> {(data[0].value / goals.length * 100).toFixed(2)}%</li> {/* Percentual de Concluídas */}
       </ul>
+
     </section>
   );
 }
+
+
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -161,6 +192,7 @@ export default function DashboardPage() {
     setEditDescription("");
     setEditCategoryId(null);
   };
+
 
   const saveEdit = async (id: number) => {
     if (!editTitle.trim()) return alert("Título é obrigatório");
@@ -464,7 +496,8 @@ export default function DashboardPage() {
           </section>
 
           {/* Relatório */}
-          {token && <Report token={token} />}
+          {token && <Report token={token} goals={goals} />}
+
         </div>
       </main>
     </>
