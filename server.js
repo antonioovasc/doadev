@@ -9,6 +9,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const connection = require("./db");
 
+const { OpenAI } = require('openai');
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -27,6 +29,41 @@ function authenticateToken(req, res, next) {
     next();
   });
 }
+
+// Configuração do OpenAI API
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,  //Chave key no env
+});
+
+app.post('/suggestions', async (req, res) => {
+  const { prompt } = req.body;
+
+  if (!prompt) {
+    return res.status(400).send("Prompt necessário!");
+  }
+
+  try {
+    console.log("Enviando prompt para OpenAI:", prompt); // Log do prompt
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 100 // Limita o número de tokens na resposta
+    });
+
+    const suggestion = completion.choices[0].message.content; // Pega a sugestão gerada
+    console.log("Sugestão gerada:", suggestion);  // Log da sugestão
+
+    res.json({ suggestion });
+  } catch (error) {
+    console.error("Erro ao gerar sugestão:", error);  // Exibe o erro completo
+    res.status(500).json({
+      message: "Erro ao gerar sugestão",
+      error: error.message,  // Passa a mensagem de erro para o cliente
+    });
+  }
+});
+
 
 // Registro - SRP (Responsabilidade única)
 app.post("/register", async (req, res) => {
@@ -226,7 +263,7 @@ app.get("/report", authenticateToken, (req, res) => {
     }
     if (results.length === 0) {
       return res.json({
-        name: "", 
+        name: "",
         total_goals: 0,
         completed_goals: 0,
         pending_goals: 0,

@@ -110,11 +110,10 @@ export default function LoginPage() {
 
         {message && (
           <div
-            className={`mb-6 px-4 py-3 rounded-md text-sm shadow-sm select-text border ${
-              isSuccess
+            className={`mb-6 px-4 py-3 rounded-md text-sm shadow-sm select-text border ${isSuccess
                 ? "bg-green-100 text-green-700 border-green-300"
                 : "bg-red-100 text-red-700 border-red-300"
-            }`}
+              }`}
           >
             {message}
           </div>

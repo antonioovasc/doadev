@@ -280,8 +280,15 @@ export default function DashboardPage() {
   return (
     <>
       <nav className="flex justify-between items-center bg-white px-8 py-4 shadow-md">
-        <h1 className="text-3xl font-bold text-[#1E3A5F]">Painel de Metas</h1>
+        <h1 className="text-3xl font-extrabold text-[#1E3A5F]">Painel de Metas</h1>
         <div className="flex gap-4">
+          <button
+            onClick={() => router.push("/dashboard/ia")}
+            className="flex items-center gap-2 text-[#1E3A5F] px-5 py-2.5 rounded-full font-semibold shadow-md hover:shadow-lg"
+          >
+            Sugestões com IA
+          </button>
+
           <button
             onClick={() => router.push("/dashboard/categories")}
             className="flex items-center gap-2 text-[#1E3A5F] px-5 py-2.5 rounded-full font-semibold shadow-md hover:shadow-lg"

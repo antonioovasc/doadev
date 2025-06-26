@@ -76,7 +76,7 @@ export default function ProfilePage() {
   return (
     <main className="min-h-screen bg-gray-100 p-8 flex justify-center items-center">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h1 className="text-2xl font-bold text-[#1E3A5F] mb-6">Meu Perfil</h1>
+        <h1 className="text-3xl font-extrabold text-[#1E3A5F] mb-6 text-center">Meu Perfil</h1>
 
         {/* Nome */}
         <label className="block mb-4">

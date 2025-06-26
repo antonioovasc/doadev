@@ -87,88 +87,90 @@ export default function CategoriesPage() {
   if (!token) return <p className="text-center mt-10 text-gray-500">Carregando...</p>;
 
   return (
-    <div className="max-w-3xl mx-auto mt-12 p-8 bg-white rounded-xl shadow-lg">
-      <h1 className="text-3xl font-extrabold text-[#1E3A5F] mb-8 text-center">Categorias</h1>
+    <main className="min-h-screen bg-gray-100 p-16 flex justify-center items-center">
+      <div className="w-full max-w-4xl h-auto p-12 bg-white rounded-xl shadow-lg">
+        <h1 className="text-3xl font-extrabold text-[#1E3A5F] mb-8 text-center">Categorias</h1>
 
-      {/* Botão Voltar */}
-      <button
-        onClick={() => router.push("/dashboard")}
-        className="mb-6 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded"
-      >
-        ← Voltar para o painel
-      </button>
-      
-
-      {/* Nova Categoria */}
-      <div className="flex gap-4 mb-10">
-        <input
-          type="text"
-          className="flex-grow border border-gray-300 rounded-lg px-5 py-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1E3A5F] transition"
-          placeholder="Nova categoria"
-          value={newCategory}
-          onChange={(e) => setNewCategory(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && addCategory()}
-        />
+        {/* Botão Voltar */}
         <button
-          onClick={addCategory}
-          className="bg-[#1E3A5F] hover:bg-[#163254] text-white font-semibold px-6 rounded-lg shadow-md transition"
+          onClick={() => router.push("/dashboard")}
+          className="mb-6 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded"
         >
-          Adicionar
+          ← Voltar para o painel
         </button>
-      </div>
 
-      {/* Lista de Categorias */}
-      <ul className="space-y-5">
-        {categories.map((c) => (
-          <li
-            key={c.id}
-            className="flex justify-between items-center border-b border-gray-200 pb-4"
+
+        {/* Nova Categoria */}
+        <div className="flex gap-4 mb-10">
+          <input
+            type="text"
+            className="flex-grow border border-gray-300 rounded-lg px-5 py-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1E3A5F] transition"
+            placeholder="Nova categoria"
+            value={newCategory}
+            onChange={(e) => setNewCategory(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && addCategory()}
+          />
+          <button
+            onClick={addCategory}
+            className="bg-[#1E3A5F] hover:bg-[#163254] text-white font-semibold px-6 rounded-lg shadow-md transition"
           >
-            {editingId === c.id ? (
-              <div className="flex gap-3 w-full">
-                <input
-                  className="flex-grow border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-600 transition"
-                  value={editingName}
-                  onChange={(e) => setEditingName(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && saveEdit(c.id)}
-                  autoFocus
-                />
-                <button
-                  onClick={() => saveEdit(c.id)}
-                  className="bg-green-600 hover:bg-green-700 text-white rounded-lg px-4 py-2 font-semibold transition"
-                >
-                  Salvar
-                </button>
-                <button
-                  onClick={cancelEdit}
-                  className="bg-gray-300 hover:bg-gray-400 rounded-lg px-4 py-2 transition"
-                >
-                  Cancelar
-                </button>
-              </div>
-            ) : (
-              <>
-                <span className="text-gray-800 font-medium">{c.name}</span>
-                <div className="flex gap-6 text-sm">
-                      <button
-                        onClick={() => startEdit(c)}
-                        className="p-2 rounded-md bg-[#1E3A5F] hover:bg-[#16324B] text-white"
-                      >
-                        <FaEdit />
-                      </button>
-                      <button
-                        onClick={() => deleteCategory(c.id)}
-                        className="p-2 rounded-md bg-red-600 hover:bg-red-700 text-white"
-                      >
-                        <FaTrash />
-                      </button>
+            Adicionar
+          </button>
+        </div>
 
+        {/* Lista de Categorias */}
+        <ul className="space-y-5">
+          {categories.map((c) => (
+            <li
+              key={c.id}
+              className="flex justify-between items-center border-b border-gray-200 pb-4"
+            >
+              {editingId === c.id ? (
+                <div className="flex gap-3 w-full">
+                  <input
+                    className="flex-grow border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-600 transition"
+                    value={editingName}
+                    onChange={(e) => setEditingName(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && saveEdit(c.id)}
+                    autoFocus
+                  />
+                  <button
+                    onClick={() => saveEdit(c.id)}
+                    className="bg-green-600 hover:bg-green-700 text-white rounded-lg px-4 py-2 font-semibold transition"
+                  >
+                    Salvar
+                  </button>
+                  <button
+                    onClick={cancelEdit}
+                    className="bg-gray-300 hover:bg-gray-400 rounded-lg px-4 py-2 transition"
+                  >
+                    Cancelar
+                  </button>
                 </div>
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
-    </div>
+              ) : (
+                <>
+                  <span className="text-gray-800 font-medium">{c.name}</span>
+                  <div className="flex gap-6 text-sm">
+                    <button
+                      onClick={() => startEdit(c)}
+                      className="p-2 rounded-md bg-[#1E3A5F] hover:bg-[#16324B] text-white"
+                    >
+                      <FaEdit />
+                    </button>
+                    <button
+                      onClick={() => deleteCategory(c.id)}
+                      className="p-2 rounded-md bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      <FaTrash />
+                    </button>
+
+                  </div>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </main>
   );
 }
